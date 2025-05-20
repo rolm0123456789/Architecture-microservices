@@ -32,11 +32,13 @@ def login():
         return jsonify(access_token=access_token), 200
     return jsonify({"message": "Invalid credentials"}), 401
 
+from flask import current_app
+
 @auth_bp.route("/profile", methods=["GET"])
 @jwt_required()
 def profile():
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)  # Use Session.get() instead of Query.get()
     if not user:
         return jsonify({"message": "User not found"}), 404
     return jsonify({
