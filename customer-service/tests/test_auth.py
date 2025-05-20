@@ -90,17 +90,27 @@ def test_user_login_invalid_credentials(client, app):
     assert "Invalid credentials" in resp.json["message"]
 
 def test_user_profile_access(client, app):
-    # Register and login user
+    # Register user
     data = {
         "username": "profileuser",
         "email": "profile@example.com",
         "password": "profilepass"
     }
     client.post("/api/auth/register", json=data)
-    login_resp = client.post("/api/auth/login", json={"username": "profileuser", "password": "profilepass"})
-    token = login_resp.json["access_token"]
-    # Access profile with correct Bearer prefix
-    resp = client.get("/api/auth/profile", headers={"Authorization": f"Bearer {token}"})
+
+    # Login to get JWT token
+    login_resp = client.post(
+        "/api/auth/login",
+        json={"username": "profileuser", "password": "profilepass"}
+    )
+    token = login_resp.get_json()["access_token"]  # <-- Fix here: .get_json()
+
+    # Access profile with valid token
+    resp = client.get(
+        "/api/auth/profile",
+        headers={"Authorization": f"Bearer {token}"}  # Bearer is correct
+    )
+    
     assert resp.status_code == 200
-    assert resp.json["username"] == "profileuser"
-    assert resp.json["email"] == "profile@example.com"
+    assert resp.get_json()["username"] == "profileuser"  # Also fix here
+    assert resp.get_json()["email"] == "profile@example.com"
