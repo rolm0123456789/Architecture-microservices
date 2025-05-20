@@ -1,22 +1,22 @@
 # app/routes/auth.py
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import (
+    create_access_token, jwt_required, get_jwt_identity
+)
 from app.models import User
 from app import db
 
-auth_bp = Blueprint("auth", __name__)
+auth_bp = Blueprint("auth_bp", __name__)
 
 @auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
-    if not data or not data.get("username") or not data.get("email") or not data.get("password"):
-        return jsonify({"message": "Missing required fields"}), 400
-
+    if not data.get("username") or not data.get("email") or not data.get("password"):
+        return jsonify({"message": "Missing fields"}), 400
     if User.query.filter_by(username=data["username"]).first():
         return jsonify({"message": "Username already exists"}), 400
     if User.query.filter_by(email=data["email"]).first():
         return jsonify({"message": "Email already exists"}), 400
-
     user = User(username=data["username"], email=data["email"])
     user.set_password(data["password"])
     db.session.add(user)
@@ -27,7 +27,6 @@ def register():
 def login():
     data = request.get_json()
     user = User.query.filter_by(username=data.get("username")).first()
-
     if user and user.check_password(data.get("password")):
         access_token = create_access_token(identity=user.id)
         return jsonify(access_token=access_token), 200
@@ -38,8 +37,10 @@ def login():
 def profile():
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
+    if not user:
+        return jsonify({"message": "User not found"}), 404
     return jsonify({
         "username": user.username,
         "email": user.email,
-        "created_at": user.created_at.isoformat()
-    })
+        "created_at": user.created_at.isoformat() if hasattr(user, "created_at") else None
+    }), 200
