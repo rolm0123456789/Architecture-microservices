@@ -99,7 +99,7 @@ def test_user_profile_access(client, app):
     client.post("/api/auth/register", json=data)
     login_resp = client.post("/api/auth/login", json={"username": "profileuser", "password": "profilepass"})
     token = login_resp.json["access_token"]
-    # Access profile
+    # Access profile with correct Bearer prefix
     resp = client.get("/api/auth/profile", headers={"Authorization": f"Bearer {token}"})
     assert resp.status_code == 200
     assert resp.json["username"] == "profileuser"
