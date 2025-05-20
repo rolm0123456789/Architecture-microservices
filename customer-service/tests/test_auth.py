@@ -103,14 +103,18 @@ def test_user_profile_access(client, app):
         "/api/auth/login",
         json={"username": "profileuser", "password": "profilepass"}
     )
-    token = login_resp.get_json()["access_token"]  # <-- Fix here: .get_json()
+    print("Login response JSON:", login_resp.get_json())
+    token = login_resp.get_json()["access_token"]
+    print("Access token:", token)
 
     # Access profile with valid token
     resp = client.get(
         "/api/auth/profile",
-        headers={"Authorization": f"Bearer {token}"}  # Bearer is correct
+        headers={"Authorization": f"Bearer {token}"}
     )
-    
+    print("Profile response status:", resp.status_code)
+    print("Profile response JSON:", resp.get_json())
+
     assert resp.status_code == 200
-    assert resp.get_json()["username"] == "profileuser"  # Also fix here
+    assert resp.get_json()["username"] == "profileuser"
     assert resp.get_json()["email"] == "profile@example.com"
