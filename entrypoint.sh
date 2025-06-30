@@ -1,6 +1,6 @@
 #!/bin/sh
 # Entrypoint script to initialize the SQLite DB and run the Flask app
-
+cd customer-service
 # Set up the database if it doesn't exist
 python -c "from app import create_app, db; app = create_app('app.config.DevelopmentConfig'); ctx = app.app_context(); ctx.push(); db.create_all(); ctx.pop()"
 
