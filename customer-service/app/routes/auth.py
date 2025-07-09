@@ -14,11 +14,14 @@ def register():
     # Check for required fields
     required_fields = ["username", "email", "password", "firstname", "lastname", "role"]
     if not all(data.get(field) for field in required_fields):
-        return jsonify({"message": "Missing fields"}), 400
+        return jsonify({"message": "Missing fields"}), 409
+
     if User.query.filter_by(username=data["username"]).first():
-        return jsonify({"message": "Username already exists"}), 400
+        return jsonify({"message": "Username already exists"}), 419
+
     if User.query.filter_by(email=data["email"]).first():
-        return jsonify({"message": "Email already exists"}), 400
+        return jsonify({"message": "Email already exists"}), 429
+
     # Create user with new fields
     user = User(
         username=data["username"],
@@ -29,8 +32,12 @@ def register():
     )
     user.set_password(data["password"])
     db.session.add(user)
-    db.session.commit()
-    return jsonify({"message": "User created successfully"}), 201
+    db.session.commit()  # user.id is now available
+
+    return jsonify({
+        "message": "User created successfully",
+        "user_id": user.id
+    }), 201
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
